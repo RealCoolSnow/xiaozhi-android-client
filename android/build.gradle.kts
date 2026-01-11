@@ -14,6 +14,24 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+
+    // Fix for plugins not specifying namespace (e.g. flutter_pcm_player)
+    val configureNamespace = {
+        if (project.extensions.findByName("android") != null) {
+            val androidImpl = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
+            if (androidImpl != null && androidImpl.namespace == null) {
+                androidImpl.namespace = "com.example.${project.name.replace("-", "_")}"
+            }
+        }
+    }
+
+    if (project.state.executed) {
+        configureNamespace()
+    } else {
+        project.afterEvaluate {
+            configureNamespace()
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
